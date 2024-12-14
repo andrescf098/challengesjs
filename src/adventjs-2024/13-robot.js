@@ -26,31 +26,54 @@ true: si el robot vuelve a estar justo donde empezó
 */
 
 function isRobotBack(moves) {
-  const origin = [0, 0];
   const pos = [0, 0];
   const actions = {
-    L: (pos) => [pos[0] - 1, pos[1]],
-    R: (pos) => [pos[0] + 1, pos[1]],
-    U: (pos) => [pos[0], pos[1] + 1],
-    D: (pos) => [pos[0], pos[1] - 1],
+    L: () => {
+      pos[0]--;
+    },
+    R: () => {
+      pos[0]++;
+    },
+    U: () => {
+      pos[1]++;
+    },
+    D: () => {
+      pos[1]--;
+    },
   };
-  let orders = moves.match(/([A-Z])|([!?*][A-Z])/g) || [];
+  let orders = moves.match(/([A-Z])|([!?*][A-Z])/g);
   for (let i = 0; i < orders.length; i++) {
     if (orders[i].length > 1) {
       const [mod, action] = orders[i].split("");
       if (mod === "*") {
-        orders[i] = action + action;
+        actions[action]();
+        actions[action]();
+        result = action.slice(0, 1);
+        orders[i] = result;
       } else if (mod === "!") {
-        orders[i] = action;
+        let result =
+          action === "U"
+            ? "D"
+            : action === "D"
+            ? "U"
+            : action === "L"
+            ? "R"
+            : "L";
+        orders[i] = result;
+        actions[result]();
       } else if (mod === "?") {
-        if (orders.slice(0, i).includes(action)) {
-          orders[i] = "";
+        if (!orders.slice(0, i).includes(action)) {
+          actions[action]();
         }
       }
     } else {
+      actions[orders[i]]();
     }
   }
+  return pos[0] === 0 && pos[1] === 0 ? true : pos;
 }
+
+isRobotBack("*U?U"); // [0,2]
 
 isRobotBack("R"); // [1, 0]
 isRobotBack("RL"); // true
@@ -64,7 +87,7 @@ isRobotBack("R!L"); // [2,0]
 isRobotBack("U!D"); // [0,2]
 isRobotBack("R?L"); // true
 isRobotBack("U?U"); // [0,1]
-isRobotBack("*U?U"); // [0,2]
+
 isRobotBack("U?D?U"); // true
 
 // Ejemplos paso a paso:
